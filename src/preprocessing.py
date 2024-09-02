@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, TensorDataset
 # %%
 def preprocess(input_path, meta_path, batch_size=64):
     adata = sc.read_text(input_path)
-    meta = pd.read_csv("../data/meta.tsv", sep="\t")
+    meta = pd.read_csv(meta_path, sep="\t")
     adata.var = meta
 
     sc.pp.normalize_total(adata, target_sum=1e4)
