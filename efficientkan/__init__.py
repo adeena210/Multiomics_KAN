@@ -1,0 +1,1 @@
+from src.efficient_kan.kan import KAN
