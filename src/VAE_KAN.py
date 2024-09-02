@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from preprocessing import preprocess
 from efficientkan import KAN
 
+
 # %%
 class VAE(nn.Module):
     def __init__(self, input_dim, hidden_dim=400, latent_dim=20):
