@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from preprocessing import preprocess
+from efficientkan import KAN
+
 
 # %%
 class VAE(nn.Module):
@@ -10,13 +12,13 @@ class VAE(nn.Module):
         super(VAE, self).__init__()
         
         # Encoder layers
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
-        self.fc21 = nn.Linear(hidden_dim, latent_dim)  # Mean of the latent space
-        self.fc22 = nn.Linear(hidden_dim, latent_dim)  # Log variance of the latent space
+        self.fc1 = KAN([input_dim, hidden_dim])
+        self.fc21 = KAN([hidden_dim, latent_dim])  # Mean of the latent space
+        self.fc22 = KAN([hidden_dim, latent_dim])  # Log variance of the latent space
 
         # Decoder layers
-        self.fc3 = nn.Linear(latent_dim, hidden_dim)
-        self.fc4 = nn.Linear(hidden_dim, input_dim)
+        self.fc3 = KAN([latent_dim, hidden_dim])
+        self.fc4 = KAN([hidden_dim, input_dim])
 
     def encode(self, x):
         h1 = F.relu(self.fc1(x))
@@ -29,7 +31,7 @@ class VAE(nn.Module):
 
     def decode(self, z):
         h3 = F.relu(self.fc3(z))
-        return torch.sigmoid(self.fc4(h3))
+        return torch.tanh(self.fc4(h3))
 
     def forward(self, x):
         mu, logvar = self.encode(x.view(-1, 784))
@@ -44,7 +46,7 @@ class VAE(nn.Module):
 # %%
 def train(model: VAE, epochs, trainloader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    optimizer = optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
     model.train()
     for epoch in epochs:
         train_loss = 0
@@ -59,10 +61,12 @@ def train(model: VAE, epochs, trainloader):
         print(f'Epoch {epoch + 1}, Loss: {train_loss / len(trainloader.dataset):.4f}')
 
 # %%
-input_path = "./data/exprMatrix.tsv"
-meta_path = "./data/meta.tsv"
+input_path = "data/exprMatrix.tsv"
+meta_path = "data/meta.tsv"
 trainloader, input_dim = preprocess(input_path, meta_path)
 vae = VAE(input_dim=input_dim)
+
+# %%
 
 train(vae, 1, trainloader)
 
